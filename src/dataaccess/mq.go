@@ -2,11 +2,12 @@ package dataaccess
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"os"
 
 	"cloud.google.com/go/pubsub"
+	"github.com/yangsun0/apiproto/src/dataaccess/apiproto/pb"
+	"google.golang.org/protobuf/proto"
 )
 
 type MessageQueue struct {
@@ -14,11 +15,6 @@ type MessageQueue struct {
 	context context.Context
 	topic *pubsub.Topic
 	sub *pubsub.Subscription
-}
-
-type ClickEvent struct {
-	Target string	`json:"target"`
-	Timestamp int64	`json:"timestamp"`
 }
 
 
@@ -45,8 +41,8 @@ func (mq *MessageQueue) Close() {
 }
 
 
-func (mq* MessageQueue) Publish(clickEvent ClickEvent) error {
-	data, _ := json.Marshal(&clickEvent)
+func (mq* MessageQueue) Publish(clickEvent *pb.ClickEvent) error {
+	data, _ := proto.Marshal(clickEvent)
 	fmt.Println(string(data))
 	msg := pubsub.Message{Data: data}
 	result := mq.topic.Publish(mq.context, &msg)
@@ -62,12 +58,12 @@ func (mq* MessageQueue) Pull() error {
 	err := mq.sub.Receive(mq.context, func(ctx context.Context, msg *pubsub.Message) {
 		fmt.Printf("Got message: %v\n", string(msg.Data))
 		msg.Ack()
-		var clickEvent ClickEvent = ClickEvent{}
-		err := json.Unmarshal(msg.Data, &clickEvent)
+		var clickEvent pb.ClickEvent = pb.ClickEvent{}
+		err := proto.Unmarshal(msg.Data, &clickEvent)
 		if err != nil {
 			fmt.Printf("receive: %v\n", err)
 		}else {
-			fmt.Println(clickEvent)
+			fmt.Println(clickEvent.String())
 		}
 	})
 	if err != nil {

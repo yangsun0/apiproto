@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/yangsun0/apiproto/src/dataaccess"
+	"github.com/yangsun0/apiproto/src/dataaccess/apiproto/pb"
 )
 
 func main() {
@@ -34,7 +35,7 @@ func main() {
 	}
 
 
-	mode := "publish"
+	mode := "pull"
 	switch mode {
 	case "addUser":
 		addUser(dataClient)
@@ -81,8 +82,8 @@ func setCache(cacheClient *dataaccess.CacheClient) {
 
 func publish(mq *dataaccess.MessageQueue) {
 	timestamp := time.Now().Unix()
-	clickEvent := dataaccess.ClickEvent{Target: "btn1", Timestamp: timestamp}
-	err := mq.Publish(clickEvent)
+	clickEvent := pb.ClickEvent{Target: "btn1", Timestamp: timestamp}
+	err := mq.Publish(&clickEvent)
 	if err != nil {
 		fmt.Printf("publish error%v\n", err)
 	}
